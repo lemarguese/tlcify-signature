@@ -1,0 +1,10 @@
+.main {
+  position: relative;
+  display: flex;
+
+}
+
+.document {
+  position: relative;
+  left: 0;
+}
