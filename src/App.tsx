@@ -155,7 +155,7 @@ function App () {
                 penColor='#1a1a1a'
                 canvasProps={{
                   style: {
-                    width: '100%',
+                    width: 350,
                     height: 140,
                     borderRadius: 8,
                     border: '0.5px solid #ccc',
