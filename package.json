@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@vitejs/plugin-react-swc": "^4.3.0",
     "axios": "^1.13.6",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "5.4.296",

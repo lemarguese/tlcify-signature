@@ -1,4 +1,6 @@
 .container {
+  width: 1000px;
+
   display: flex;
   flex-direction: column;
 
@@ -51,6 +53,12 @@
 .main {
   position: relative;
   display: flex;
+}
+
+@media (max-width: 576px) {
+  .main {
+    flex-direction: column;
+  }
 }
 
 .document_container {
