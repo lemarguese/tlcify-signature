@@ -14,5 +14,8 @@ export default defineConfig({
   server: {
     host: true,
     allowedHosts: ['.tlcify.com']
+  },
+  worker: {
+    format: 'es'
   }
 })
