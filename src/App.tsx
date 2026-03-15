@@ -2,6 +2,8 @@ import './App.css';
 
 import { Document, Page, pdfjs } from 'react-pdf';
 import { useRef, useState } from "react";
+import type { RefObject } from 'react'
+
 import SignatureCanvas from 'react-signature-canvas';
 
 import workerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
@@ -79,7 +81,7 @@ function App () {
     }
 
     const signedPdfBytes = await pdfDoc.save();
-    const blob = new Blob([signedPdfBytes], { type: 'application/pdf' });
+    const blob = new Blob([signedPdfBytes as unknown as BlobPart], { type: 'application/pdf' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -111,7 +113,7 @@ function App () {
           </Document>
 
           {signatureDataUrls.map((sig, index) => {
-            const nodeRef = { current: dragRefs.current[index] } as React.RefObject<HTMLDivElement>;
+            const nodeRef = { current: dragRefs.current[index] } as RefObject<HTMLDivElement | null>;
 
             return (
               <Draggable
@@ -120,7 +122,7 @@ function App () {
                 bounds="parent"
                 handle=".drag-handle"
                 defaultPosition={{ x: 0, y: 0 }}
-                onStop={(e, data) => {
+                onStop={(_, data) => {
                   setSigPositions(prev => {
                     const updated = [...prev];
                     updated[index] = { x: data.x, y: data.y };
