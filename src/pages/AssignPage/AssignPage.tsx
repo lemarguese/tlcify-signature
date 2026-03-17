@@ -31,6 +31,9 @@ function AssignPage () {
   const fetchTemplateById = async () => {
     const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/signature/${templateId}`, {
       method: 'GET',
+      headers: {
+        'X-Tenant-ID': import.meta.env.VITE_MAIN_TENANT
+      }
     });
 
     const data = await response.json();
