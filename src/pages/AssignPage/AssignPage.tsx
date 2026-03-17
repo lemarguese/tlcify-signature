@@ -29,7 +29,7 @@ function AssignPage () {
   });
 
   const fetchTemplateById = async () => {
-    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/signature_templates/${templateId}`, {
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/signature/${templateId}`, {
       method: 'GET',
     });
 
@@ -89,7 +89,7 @@ function AssignPage () {
       };
     });
 
-    await fetch(`${import.meta.env.VITE_BACKEND_URL}/signature_templates/${templateId}`, {
+    await fetch(`${import.meta.env.VITE_BACKEND_URL}/signature/${templateId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ fields })
