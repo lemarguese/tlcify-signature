@@ -89,7 +89,7 @@ function AssignPage () {
       };
     });
 
-    await fetch(`${process.env.VITE_BACKEND_URL}/signature_templates/${templateId}`, {
+    await fetch(`${import.meta.env.VITE_BACKEND_URL}/signature_templates/${templateId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ fields })
