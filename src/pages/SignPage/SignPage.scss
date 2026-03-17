@@ -1,32 +1,40 @@
 .container {
   width: 1000px;
   max-width: 1440px;
-
   display: flex;
   flex-direction: column;
-
   border-left: 1px solid #000;
   border-right: 1px solid #000;
-
   box-shadow: 1px 1px 15px rgba(0, 0, 0, .2);
+
+  @media (max-width: 576px) {
+    width: 100%;
+    border-left: none;
+    border-right: none;
+    box-shadow: none;
+  }
 }
 
 .main {
   position: relative;
   display: flex;
-}
 
-@media (max-width: 576px) {
-  .main {
-    flex-direction: column;
+  @media (max-width: 576px) {
+    flex-direction: column-reverse;
   }
 }
 
 .document_container {
   position: relative;
   display: inline-block;
-
   border-right: 1px solid rgba(0, 0, 0, 0.25);
+  overflow-x: auto;
+
+  @media (max-width: 576px) {
+    border-right: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    width: 100%;
+  }
 }
 
 .document {
@@ -34,41 +42,170 @@
   left: 0;
 }
 
+// draggable field
+.field_wrapper {
+  position: absolute;
+  z-index: 99;
+  display: inline-block;
+  top: 100px;
+  left: 35%;
+}
+
+.field_handle {
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px 4px 0 0;
+  cursor: grab;
+  user-select: none;
+}
+
+.field_image {
+  pointer-events: none;
+  display: block;
+}
+
+// signature panel
 .signature {
   position: relative;
   width: 100%;
-
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-
   gap: 12px;
   padding: 16px;
+
+  @media (max-width: 576px) {
+    padding: 12px;
+  }
 }
 
 .signature_container {
   position: sticky;
   top: 16px;
-
   width: 100%;
-
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
 .signature_canvas_container {
-  background: var(--color-background-primary);
+  background: #fff;
   border: 0.5px solid #e0e0e0;
   border-radius: 12px;
   padding: 24px;
+
+  @media (max-width: 576px) {
+    padding: 16px;
+  }
+}
+
+.signature_label {
+  font-size: 13px;
+  color: #888;
+  margin: 0 0 10px;
+}
+
+.signature_canvas {
+  width: 100% !important;
+  height: 140px;
+  border-radius: 8px;
+  border: 0.5px solid #ccc;
+  background: #fafafa;
+  display: block;
+}
+
+.signature_canvas_footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.signature_hint {
+  font-size: 12px;
+  color: #aaa;
+  margin: 0;
 }
 
 .signature_buttons {
   width: 100%;
-
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.btn_clear {
+  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 0.5px solid #ccc;
+  background: transparent;
+  cursor: pointer;
+
+  &:hover {
+    background: #f5f5f5;
+  }
+}
+
+.btn_cancel {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 0.5px solid #ccc;
+  background: transparent;
+  font-size: 14px;
+  cursor: pointer;
+
+  &:hover {
+    background: #f5f5f5;
+  }
+}
+
+.btn_primary {
+  flex: 2;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover {
+    background: #333;
+  }
+}
+
+.submit_wrapper {
+  width: 100%;
+}
+
+.btn_submit {
+  width: 100%;
+  padding: 12px 8px;
+  border-radius: 8px;
+  border: none;
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #333;
+  }
+
+  &--disabled {
+    background: #ccc;
+    cursor: not-allowed;
+
+    &:hover {
+      background: #ccc;
+    }
+  }
 }

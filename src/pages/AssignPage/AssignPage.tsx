@@ -140,25 +140,14 @@ function AssignPage () {
                     dragRefs.current[index] = el;
                     nodeRef.current = el;
                   }}
-                  style={{ position: 'absolute', zIndex: 99, display: 'inline-block', top: 100, left: '35%' }}
+                  className='field_wrapper'
                 >
-                  <div className="drag-handle" style={{
-                    background: '#1a1a1a',
-                    color: '#fff',
-                    fontSize: 11,
-                    padding: '2px 8px',
-                    borderRadius: '4px 4px 0 0',
-                    cursor: 'grab',
-                    userSelect: 'none'
-                  }}>
-                    ✥ ASSIGN THE SIGNATURE
+                  <div className="drag-handle field_handle">
+                    <span>✥</span> Signature field {index + 1}
                   </div>
-                  <div style={{
-                    width: 200,
-                    height: 60,
-                    border: '1px dashed #000',
-                    background: 'rgba(0,0,0,0.03)'
-                  }}/>
+                  <div className='field_box'>
+                    <span className='field_box_label'>Sign here</span>
+                  </div>
                 </div>
               </Draggable>
             );
@@ -167,20 +156,36 @@ function AssignPage () {
 
         <div className='signature'>
           <div className='signature_container'>
-            <div className='signature_buttons'>
-              <button onClick={handleCreateField} style={{
-                flex: 2, padding: 10, borderRadius: 8, border: 'none',
-                background: '#1a1a1a', color: '#fff', fontSize: 14, fontWeight: 500, cursor: 'pointer'
-              }}>Create a field
+            <div className='fields_panel'>
+              <p className='fields_panel_title'>Signature fields</p>
+              <p className='fields_panel_hint'>
+                Create a field and drag it to the exact position where the customer should sign.
+              </p>
+
+              {signatureDataUrls.length > 0 && (
+                <div className='fields_list'>
+                  {signatureDataUrls.map((_, index) => (
+                    <div key={index} className='fields_list_item'>
+                      <span className='fields_list_badge'>{index + 1}</span>
+                      Signature field {index + 1}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <button onClick={handleCreateField} className='btn_create'>
+                <span>+</span> Create a field
               </button>
             </div>
           </div>
 
-          <div style={{ width: '100%' }}>
-            <button onClick={handleSubmitGenerate} disabled={!signatureDataUrls.length} style={{
-              width: '100%', padding: '12px 8px', borderRadius: 8, border: 'none',
-              background: '#1a1a1a', color: '#fff', fontSize: 14, fontWeight: 500, cursor: 'pointer'
-            }}>SUBMIT
+          <div className='submit_wrapper'>
+            <button
+              onClick={handleSubmitGenerate}
+              disabled={!signatureDataUrls.length}
+              className={`btn_submit ${!signatureDataUrls.length ? 'btn_submit--disabled' : ''}`}
+            >
+              Save fields
             </button>
           </div>
         </div>

@@ -130,17 +130,9 @@ function SignPage () {
                     dragRefs.current[index] = el;
                     nodeRef.current = el;
                   }}
-                  style={{ position: 'absolute', zIndex: 99, display: 'inline-block', top: 100, left: '35%' }}
+                  className='field_wrapper'
                 >
-                  <div className="drag-handle" style={{
-                    background: '#1a1a1a',
-                    color: '#fff',
-                    fontSize: 11,
-                    padding: '2px 8px',
-                    borderRadius: '4px 4px 0 0',
-                    cursor: 'grab',
-                    userSelect: 'none'
-                  }}>
+                  <div className="drag-handle field_handle">
                     ✥ SIGNATURE
                   </div>
                   <img
@@ -148,61 +140,42 @@ function SignPage () {
                     src={sig}
                     width={200}
                     height={60}
-                    style={{ pointerEvents: 'none', display: 'block' }}
+                    className='field_image'
                   />
                 </div>
               </Draggable>
-            )
+            );
           })}
         </div>
 
         <div className='signature'>
           <div className='signature_container'>
             <div className='signature_canvas_container'>
-              <p style={{ fontSize: 13, color: '#888', margin: '0 0 10px' }}>Sign below</p>
+              <p className='signature_label'>Sign below</p>
               <SignatureCanvas
                 ref={sigRef}
                 penColor='#1a1a1a'
-                canvasProps={{
-                  style: {
-                    width: 350,
-                    height: 140,
-                    borderRadius: 8,
-                    border: '0.5px solid #ccc',
-                    background: '#fafafa',
-                    display: 'block',
-                  }
-                }}
+                canvasProps={{ className: 'signature_canvas' }}
               />
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 }}>
-                <p style={{ fontSize: 12, color: '#aaa', margin: 0 }}>Draw your signature with mouse or finger</p>
-                <button onClick={handleClear} style={{
-                  fontSize: 13, padding: '6px 14px', borderRadius: 8,
-                  border: '0.5px solid #ccc', background: 'transparent', cursor: 'pointer'
-                }}>Clear
-                </button>
+              <div className='signature_canvas_footer'>
+                <p className='signature_hint'>Draw your signature with mouse or finger</p>
+                <button onClick={handleClear} className='btn_clear'>Clear</button>
               </div>
             </div>
 
             <div className='signature_buttons'>
-              <button style={{
-                flex: 1, padding: 10, borderRadius: 8,
-                border: '0.5px solid #ccc', background: 'transparent', fontSize: 14, cursor: 'pointer'
-              }}>Cancel
-              </button>
-              <button onClick={handleSubmitSignature} style={{
-                flex: 2, padding: 10, borderRadius: 8, border: 'none',
-                background: '#1a1a1a', color: '#fff', fontSize: 14, fontWeight: 500, cursor: 'pointer'
-              }}>Submit signature
-              </button>
+              <button className='btn_cancel'>Cancel</button>
+              <button onClick={handleSubmitSignature} className='btn_primary'>Submit signature</button>
             </div>
           </div>
 
-          <div style={{ width: '100%' }}>
-            <button onClick={handleSubmitGenerate} disabled={!signatureDataUrls.length} style={{
-              width: '100%', padding: '12px 8px', borderRadius: 8, border: 'none',
-              background: '#1a1a1a', color: '#fff', fontSize: 14, fontWeight: 500, cursor: 'pointer'
-            }}>SUBMIT
+          <div className='submit_wrapper'>
+            <button
+              onClick={handleSubmitGenerate}
+              disabled={!signatureDataUrls.length}
+              className={`btn_submit ${!signatureDataUrls.length ? 'btn_submit--disabled' : ''}`}
+            >
+              SUBMIT
             </button>
           </div>
         </div>
