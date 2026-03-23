@@ -16,7 +16,7 @@ import { PDFDocument } from 'pdf-lib';
 import Header from "../../layout/Header/Header.tsx";
 import Footer from "../../layout/Footer/Footer.tsx";
 import { useParams } from "react-router";
-import { ISignatureTemplate } from "../../types/document.ts";
+import type { ISignatureTemplate } from "../../types/document.ts";
 
 function SignPage () {
   const { templateId } = useParams();
@@ -81,7 +81,7 @@ function SignPage () {
       const signatureImageBytes = await fetch(dataUrl).then(res => res.arrayBuffer());
       const embeddedImage = await pdfDoc.embedPng(signatureImageBytes);
 
-      const targetPage = pages[field.page];
+      const targetPage = pages[+field.page];
 
       targetPage.drawImage(embeddedImage, {
         x: field.x,
@@ -100,7 +100,6 @@ function SignPage () {
     a.click();
   };
 
-  // calculate screen position of a field overlay
   const getFieldStyle = (field: ISignatureTemplate['fields'][0]): CSSProperties => {
     const containerHeight = containerRef.current?.offsetHeight ?? 1;
     const containerWidth = containerRef.current?.offsetWidth ?? 1;
@@ -115,9 +114,7 @@ function SignPage () {
     const screenX = (field.x * scaleX);
     const yWithinPage = (pdfHeight - field.y) * scaleY;
 
-    const screenY = field.page * pageHeight + yWithinPage;
-
-    console.log(screenX, screenY)
+    const screenY = +field.page * pageHeight + yWithinPage;
 
     const screenWidth = field.width * scaleX;
     const screenHeight = field.height * scaleY;
