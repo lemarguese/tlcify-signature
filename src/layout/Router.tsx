@@ -5,8 +5,8 @@ import SignPage from "../pages/SignPage/SignPage.tsx";
 export default function Router () {
   return <BrowserRouter>
     <Routes>
-      <Route path="/assign/:templateId" element={<AssignPage />}/>
-      <Route path="/sign/:templateId" element={<SignPage />}/>
+      <Route path="/assign/:endorsementId" element={<AssignPage />}/>
+      <Route path="/sign/:endorsementId" element={<SignPage />}/>
     </Routes>
   </BrowserRouter>
 }
