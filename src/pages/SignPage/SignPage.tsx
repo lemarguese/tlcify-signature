@@ -1,9 +1,8 @@
 import './SignPage.scss';
 
 import { Document, Page, pdfjs } from 'react-pdf';
-import { useRef, useState } from "react";
-import type { RefObject } from 'react'
-
+import { useEffect, useRef, useState } from "react";
+import type { CSSProperties } from 'react'
 import SignatureCanvas from 'react-signature-canvas';
 
 import workerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
@@ -14,71 +13,81 @@ import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
 import { PDFDocument } from 'pdf-lib';
-import Draggable from 'react-draggable';
 import Header from "../../layout/Header/Header.tsx";
 import Footer from "../../layout/Footer/Footer.tsx";
+import { useParams } from "react-router";
+import { ISignatureTemplate } from "../../types/document.ts";
 
 function SignPage () {
-  const [numPages, setNumPages] = useState(0);
-  const sigRef = useRef<SignatureCanvas>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const { templateId } = useParams();
 
-  const [signatureDataUrls, setSignatureDataUrls] = useState<string[]>([]);
-  const [sigPositions, setSigPositions] = useState<{ x: number, y: number }[]>([]);
-  const dragRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [template, setTemplate] = useState<ISignatureTemplate>({
+    insurance: '',
+    type: '',
+    url: '',
+    fields: []
+  });
+
+  const fetchTemplateById = async () => {
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/signature/${templateId}`, {
+      method: 'GET',
+      headers: { 'X-Tenant-ID': import.meta.env.VITE_MAIN_TENANT },
+      credentials: "include"
+    });
+    const data = await response.json();
+    setTemplate(data);
+  };
+
+  useEffect(() => { fetchTemplateById(); }, []);
+
+  const [numPages, setNumPages] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const sigRef = useRef<SignatureCanvas>(null);
+
+  // signatures keyed by fieldName
+  const [signatures, setSignatures] = useState<Record<string, string>>({});
+  // which field is currently being signed
+  const [activeField, setActiveField] = useState<string | null>(null);
 
   const handleClear = () => sigRef.current?.clear();
+
+  const handleSignField = (fieldName: string) => {
+    setActiveField(fieldName);
+  };
 
   const handleSubmitSignature = () => {
     if (sigRef.current?.isEmpty()) {
       alert('Please provide a signature');
       return;
     }
-    const signatureImage = sigRef.current!.toDataURL('image/png');
-    setSignatureDataUrls(prev => [...prev, signatureImage]);
-    setSigPositions(prev => [...prev, { x: 0, y: 0 }]);
-
+    const dataUrl = sigRef.current!.toDataURL('image/png');
+    setSignatures(prev => ({ ...prev, [activeField!]: dataUrl }));
+    setActiveField(null);
     handleClear();
   };
 
-  const handleSubmitGenerate = async () => {
-    const pdfBytes = await fetch('https://tlcify.nyc3.cdn.digitaloceanspaces.com/endorsement-request%20(1).pdf')
-      .then(res => res.arrayBuffer());
+  const allFieldsSigned = template.fields.length > 0 &&
+    template.fields.every(f => signatures[f.fieldName]);
 
+  const handleSubmitGenerate = async () => {
+    const pdfBytes = await fetch(template.url).then(res => res.arrayBuffer());
     const pdfDoc = await PDFDocument.load(pdfBytes);
     const pages = pdfDoc.getPages();
 
-    const containerHeight = containerRef.current?.offsetHeight ?? 1;
-    const containerWidth = containerRef.current?.offsetWidth ?? 1;
-    const pageHeight = containerHeight / numPages;
-    const signatureCanvasHeight = sigRef.current?.getCanvas().offsetHeight ?? 77;
-
-    for (let i = 0; i < signatureDataUrls.length; i++) {
-      const sigPos = sigPositions[i];
-      const dataUrl = signatureDataUrls[i];
+    for (const field of template.fields) {
+      const dataUrl = signatures[field.fieldName];
+      if (!dataUrl) continue;
 
       const signatureImageBytes = await fetch(dataUrl).then(res => res.arrayBuffer());
       const embeddedImage = await pdfDoc.embedPng(signatureImageBytes);
 
-      const pageIndex = Math.min(
-        Math.floor(sigPos.y / pageHeight),
-        pages.length - 1
-      );
-
-      const targetPage = pages[pageIndex];
-      const { width: pdfWidth, height: pdfHeight } = targetPage.getSize();
-
-      const scaleX = pdfWidth / containerWidth;
-      const scaleY = pdfHeight / pageHeight;
-
-      const signatureX = (sigPos.x + 350) * scaleX;
-      const signatureY = pdfHeight - (((sigPos.y % pageHeight) + signatureCanvasHeight) * scaleY) - 20;
+      const targetPage = pages[field.page];
 
       targetPage.drawImage(embeddedImage, {
-        x: signatureX,
-        y: signatureY,
-        width: 200 * scaleX,
-        height: 77 * scaleY,
+        x: field.x,
+        y: field.y,
+        width: field.width,
+        height: field.height,
       });
     }
 
@@ -91,6 +100,38 @@ function SignPage () {
     a.click();
   };
 
+  // calculate screen position of a field overlay
+  const getFieldStyle = (field: ISignatureTemplate['fields'][0]): CSSProperties => {
+    const containerHeight = containerRef.current?.offsetHeight ?? 1;
+    const containerWidth = containerRef.current?.offsetWidth ?? 1;
+    const pageHeight = containerHeight / numPages;
+
+    const pdfWidth = 612;
+    const pdfHeight = 792;
+
+    const scaleX = containerWidth / pdfWidth;
+    const scaleY = pageHeight / pdfHeight;
+
+    const screenX = (field.x * scaleX);
+    const yWithinPage = (pdfHeight - field.y) * scaleY;
+
+    const screenY = field.page * pageHeight + yWithinPage;
+
+    console.log(screenX, screenY)
+
+    const screenWidth = field.width * scaleX;
+    const screenHeight = field.height * scaleY;
+
+    return {
+      position: 'absolute',
+      left: screenX,
+      top: screenY,
+      width: screenWidth,
+      height: screenHeight,
+      zIndex: 99,
+    };
+  };
+
   return (
     <div className='container'>
       <Header/>
@@ -98,7 +139,7 @@ function SignPage () {
         <div className='document_container' ref={containerRef}>
           <Document
             className='document'
-            file='https://tlcify.nyc3.cdn.digitaloceanspaces.com/endorsement-request%20(1).pdf'
+            file={template.url}
             onLoadSuccess={({ numPages }) => setNumPages(numPages)}
             onLoadError={(error) => console.log(error)}
           >
@@ -107,73 +148,101 @@ function SignPage () {
             ))}
           </Document>
 
-          {signatureDataUrls.map((sig, index) => {
-            const nodeRef = { current: dragRefs.current[index] } as RefObject<HTMLDivElement | null>;
-
-            return (
-              <Draggable
-                key={index}
-                nodeRef={nodeRef}
-                bounds="parent"
-                handle=".drag-handle"
-                defaultPosition={{ x: 0, y: 0 }}
-                onStop={(_, data) => {
-                  setSigPositions(prev => {
-                    const updated = [...prev];
-                    updated[index] = { x: data.x, y: data.y };
-                    return updated;
-                  });
-                }}
-              >
-                <div
-                  ref={el => {
-                    dragRefs.current[index] = el;
-                    nodeRef.current = el;
-                  }}
-                  className='field_wrapper'
-                >
-                  <div className="drag-handle field_handle">
-                    ✥ SIGNATURE
-                  </div>
+          {numPages > 0 && template.fields.map((field) => (
+            <div key={field.fieldName} style={getFieldStyle(field)}>
+              {signatures[field.fieldName] ? (
+                // signed — show the signature image
+                <div style={{ position: 'relative', width: '100%', height: '100%' }}>
                   <img
-                    alt='signature-image'
-                    src={sig}
-                    width={200}
-                    height={60}
-                    className='field_image'
+                    src={signatures[field.fieldName]}
+                    style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+                    alt='signature'
                   />
+                  <button
+                    onClick={() => handleSignField(field.fieldName)}
+                    style={{
+                      position: 'absolute', top: -8, right: -8,
+                      background: '#1a1a1a', color: '#fff',
+                      border: 'none', borderRadius: '50%',
+                      width: 20, height: 20, fontSize: 10,
+                      cursor: 'pointer', display: 'flex',
+                      alignItems: 'center', justifyContent: 'center'
+                    }}
+                  >✕
+                  </button>
                 </div>
-              </Draggable>
-            );
-          })}
+              ) : (
+                // unsigned — show click to sign box
+                <button
+                  onClick={() => handleSignField(field.fieldName)}
+                  style={{
+                    width: '100%', height: '100%',
+                    border: '1.5px dashed #1a1a1a',
+                    background: 'rgba(26,26,26,0.04)',
+                    cursor: 'pointer', borderRadius: 4,
+                    display: 'flex', alignItems: 'center',
+                    justifyContent: 'center', gap: 6,
+                    fontSize: 12, color: '#1a1a1a', fontWeight: 500,
+                  }}
+                >
+                  ✎ {field.label || 'Click to sign'}
+                </button>
+              )}
+            </div>
+          ))}
         </div>
 
         <div className='signature'>
           <div className='signature_container'>
-            <div className='signature_canvas_container'>
-              <p className='signature_label'>Sign below</p>
-              <SignatureCanvas
-                ref={sigRef}
-                penColor='#1a1a1a'
-                canvasProps={{ className: 'signature_canvas' }}
-              />
-              <div className='signature_canvas_footer'>
-                <p className='signature_hint'>Draw your signature with mouse or finger</p>
-                <button onClick={handleClear} className='btn_clear'>Clear</button>
+
+            {/* field progress list */}
+            <div className='fields_panel'>
+              <p className='fields_panel_title'>Signature fields</p>
+              <div className='fields_list'>
+                {template.fields.map((field, index) => (
+                  <div
+                    key={field.fieldName}
+                    className={`fields_list_item ${activeField === field.fieldName ? 'fields_list_item--active' : ''}`}
+                    onClick={() => handleSignField(field.fieldName)}
+                  >
+                    <span
+                      className={`fields_list_badge ${signatures[field.fieldName] ? 'fields_list_badge--done' : ''}`}>
+                      {signatures[field.fieldName] ? '✓' : index + 1}
+                    </span>
+                    {field.label || `Signature field ${index + 1}`}
+                  </div>
+                ))}
               </div>
             </div>
 
-            <div className='signature_buttons'>
-              <button className='btn_cancel'>Cancel</button>
-              <button onClick={handleSubmitSignature} className='btn_primary'>Submit signature</button>
-            </div>
+            {/* signature pad — only show when a field is active */}
+            {activeField && (
+              <div className='signature_canvas_container'>
+                <p className='signature_label'>
+                  Signing: <strong>{template.fields.find(f => f.fieldName === activeField)?.label || activeField}</strong>
+                </p>
+                <SignatureCanvas
+                  ref={sigRef}
+                  penColor='#1a1a1a'
+                  canvasProps={{ className: 'signature_canvas' }}
+                />
+                <div className='signature_canvas_footer'>
+                  <p className='signature_hint'>Draw your signature with mouse or finger</p>
+                  <button onClick={handleClear} className='btn_clear'>Clear</button>
+                </div>
+                <div className='signature_buttons' style={{ marginTop: 12 }}>
+                  <button className='btn_cancel' onClick={() => setActiveField(null)}>Cancel</button>
+                  <button onClick={handleSubmitSignature} className='btn_primary'>Confirm signature</button>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className='submit_wrapper'>
             <button
               onClick={handleSubmitGenerate}
-              disabled={!signatureDataUrls.length}
-              className={`btn_submit ${!signatureDataUrls.length ? 'btn_submit--disabled' : ''}`}
+              disabled={!allFieldsSigned}
+              className={`btn_submit ${!allFieldsSigned ? 'btn_submit--disabled' : ''}`}
             >
               SUBMIT
             </button>
@@ -182,7 +251,7 @@ function SignPage () {
       </div>
       <Footer/>
     </div>
-  )
+  );
 }
 
 export default SignPage;

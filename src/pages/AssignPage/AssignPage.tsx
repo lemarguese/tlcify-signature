@@ -85,16 +85,19 @@ function AssignPage () {
       return {
         fieldName: `signature_${index}`,
         page: pageIndex,
-        x: (sigPos.x + 350) * scaleX,
-        y: pdfHeight - ((yWithinPage + 77) * scaleY),
-        width: 200 * scaleX,
-        height: 77 * scaleY,
+        x: Math.round((sigPos.x + 350) * scaleX),
+        y: Math.round(pdfHeight - ((yWithinPage + 77) * scaleY)),
+        width: Math.round(200 * scaleX),
+        height: Math.round(77 * scaleY),
       };
     });
 
     await fetch(`${import.meta.env.VITE_BACKEND_URL}/signature/${templateId}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json', 'X-Tenant-ID': import.meta.env.VITE_MAIN_TENANT,
+      },
+      credentials: "include",
       body: JSON.stringify({ fields })
     });
 
