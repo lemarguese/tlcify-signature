@@ -16,33 +16,38 @@ import Draggable from 'react-draggable';
 import Footer from "../../layout/Footer/Footer.tsx";
 import Header from "../../layout/Header/Header.tsx";
 import { useParams } from "react-router";
-import type { ISignatureTemplate } from "../../types/document.ts";
+import type { ICustomer, IEndorsement, ISignatureTemplate } from "../../types/document.ts";
 
 function AssignPage () {
-  const { templateId } = useParams();
+  const { endorsementId } = useParams();
 
-  const [template, setTemplate] = useState<ISignatureTemplate>({
-    insurance: '',
+  const [endorsement, setEndorsement] = useState<IEndorsement>({
+    _id: endorsementId ?? '',
+    customer: {} as ICustomer,
+    signature_template: {} as ISignatureTemplate,
     type: '',
     url: '',
-    fields: []
-  });
+    status: 'signature',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  })
 
-  const fetchTemplateById = async () => {
-    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/signature/${templateId}`, {
+  const fetchEndorsementById = async () => {
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/endorsements/${endorsementId}/locations`, {
       method: 'GET',
       headers: {
-        'X-Tenant-ID': import.meta.env.VITE_MAIN_TENANT
-      }
+        'X-Tenant-ID': import.meta.env.VITE_MAIN_TENANT,
+      },
+      credentials: 'include'
     });
 
     const data = await response.json();
 
-    setTemplate(data);
+    setEndorsement(data);
   }
 
   useEffect(() => {
-    fetchTemplateById()
+    fetchEndorsementById()
   }, []);
 
   const [numPages, setNumPages] = useState(0);
@@ -63,7 +68,7 @@ function AssignPage () {
     const pageHeight = containerHeight / numPages;
 
     // fetch pdf to get its dimensions
-    const pdfBytes = await fetch(template.url)
+    const pdfBytes = await fetch(endorsement.url)
       .then(res => res.arrayBuffer());
     const pdfDoc = await PDFDocument.load(pdfBytes);
     const pages = pdfDoc.getPages();
@@ -92,7 +97,7 @@ function AssignPage () {
       };
     });
 
-    await fetch(`${import.meta.env.VITE_BACKEND_URL}/signature/${templateId}`, {
+    await fetch(`${import.meta.env.VITE_BACKEND_URL}/signature/${endorsement.signature_template._id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json', 'X-Tenant-ID': import.meta.env.VITE_MAIN_TENANT,
@@ -111,7 +116,7 @@ function AssignPage () {
         <div className='document_container' ref={containerRef}>
           <Document
             className='document'
-            file={template.url}
+            file={endorsement.url}
             onLoadSuccess={({ numPages }) => setNumPages(numPages)}
             onLoadError={(error) => console.log(error)}
           >
