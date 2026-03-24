@@ -9,10 +9,8 @@
 .main {
   position: relative;
   display: flex;
-}
 
-@media (max-width: 576px) {
-  .main {
+  @media (max-width: 576px) {
     flex-direction: column;
   }
 }
@@ -64,7 +62,7 @@
 // draggable field
 .field_wrapper {
   position: absolute;
-  zIndex: 99;
+  z-index: 99;
   display: inline-block;
   top: 100px;
   left: 35%;
@@ -129,24 +127,33 @@
   margin-bottom: 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .fields_list_item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
+  gap: 10px;
+  padding: 10px 12px;
   background: #fff;
   border: 0.5px solid #e0e0e0;
   border-radius: 8px;
-  font-size: 13px;
-  color: #555;
+  transition: border-color 0.15s;
+
+  &:hover {
+    border-color: rgba(0, 0, 0, 0.25);
+  }
+}
+
+.field_item_top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .fields_list_badge {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   background: #1a1a1a;
   color: #fff;
   border-radius: 50%;
@@ -156,6 +163,57 @@
   font-size: 10px;
   font-weight: 500;
   flex-shrink: 0;
+}
+
+.field_item_label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1a1a1a;
+  flex: 1;
+}
+
+// role selector
+.role_selector {
+  display: flex;
+  gap: 6px;
+}
+
+.role_btn {
+  font-size: 12px;
+  padding: 4px 11px;
+  border-radius: 20px;
+  border: 0.5px solid rgba(0, 0, 0, 0.2);
+  background: #f0f0f0;
+  color: #666;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+
+  &:hover {
+    background: #e5e5e5;
+    color: #1a1a1a;
+  }
+
+  &--active {
+    font-weight: 500;
+
+    &.insured {
+      background: #E6F1FB;
+      color: #0C447C;
+      border-color: #85B7EB;
+    }
+
+    &.driver {
+      background: #E1F5EE;
+      color: #085041;
+      border-color: #5DCAA5;
+    }
+
+    &.other {
+      background: #F1EFE8;
+      color: #444441;
+      border-color: #B4B2A9;
+    }
+  }
 }
 
 .btn_create {

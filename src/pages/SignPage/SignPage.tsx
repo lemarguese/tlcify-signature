@@ -1,7 +1,7 @@
 import './SignPage.scss';
 
 import { Document, Page, pdfjs } from 'react-pdf';
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from 'react'
 import SignatureCanvas from 'react-signature-canvas';
 
@@ -12,7 +12,6 @@ pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
-import { PDFDocument } from 'pdf-lib';
 import Header from "../../layout/Header/Header.tsx";
 import Footer from "../../layout/Footer/Footer.tsx";
 import { useParams } from "react-router";
@@ -20,10 +19,11 @@ import type { ISignatureTemplate, ICustomer, IEndorsement } from "../../types/do
 import { useSearchParams } from 'react-router-dom';
 
 function SignPage () {
+  const { endorsementId } = useParams();
+
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
-
-  const { endorsementId } = useParams();
+  const signatureType = searchParams.get('signatureType');
 
   const [endorsement, setEndorsement] = useState<IEndorsement>({
     _id: endorsementId ?? '',
@@ -58,6 +58,15 @@ function SignPage () {
     fetchEndorsementById()
   }, []);
 
+  // derive once, use everywhere
+  const visibleFields = useMemo(() => {
+    const fields = endorsement.signature_template.fields;
+    if (!signatureType) return fields;
+    return fields.filter(f =>
+      f.role?.toLowerCase() === signatureType.toLowerCase()
+    );
+  }, [endorsement.signature_template.fields, signatureType]);
+
   const [numPages, setNumPages] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const sigRef = useRef<SignatureCanvas>(null);
@@ -84,56 +93,28 @@ function SignPage () {
     handleClear();
   };
 
-  const allFieldsSigned = endorsement.signature_template.fields.length > 0 &&
-    endorsement.signature_template.fields.every(f => signatures[f.fieldName]);
+  const allFieldsSigned = visibleFields.length > 0 && visibleFields.every(f => signatures[f.fieldName]);
 
   const handleSubmitGenerate = async () => {
-    const pdfBytes = await fetch(endorsement.url).then(res => res.arrayBuffer());
-    const pdfDoc = await PDFDocument.load(pdfBytes);
-    const pages = pdfDoc.getPages();
+    const formData = new FormData();
 
-    for (const field of endorsement.signature_template.fields) {
+    for (const field of visibleFields) {
       const dataUrl = signatures[field.fieldName];
       if (!dataUrl) continue;
 
-      const signatureImageBytes = await fetch(dataUrl).then(res => res.arrayBuffer());
-      const embeddedImage = await pdfDoc.embedPng(signatureImageBytes);
-
-      const targetPage = pages[+field.page];
-
-      targetPage.drawImage(embeddedImage, {
-        x: field.x,
-        y: field.y,
-        width: field.width,
-        height: field.height,
-      });
+      const blob = await fetch(dataUrl).then(r => r.blob());
+      formData.append('files', blob, `${field.fieldName}.png`);
+      formData.append('fieldNames', field.fieldName);
+      formData.append('roles', field.role ?? '');
     }
-
-    const signedPdfBytes = await pdfDoc.save();
-
-    // convert to base64 to send to backend
-    const base64 = btoa(String.fromCharCode(...new Uint8Array(signedPdfBytes)));
 
     await fetch(`${import.meta.env.VITE_BACKEND_URL}/endorsements/${endorsementId}/sign?token=${token}`, {
       method: 'PATCH',
       headers: {
-        'Content-Type': 'application/json',
         'X-Tenant-ID': import.meta.env.VITE_MAIN_TENANT,
       },
-      body: JSON.stringify({
-        signedAt: new Date(),
-        signedUserAgent: navigator.userAgent,
-        buffer: base64,
-      }),
+      body: formData,
     });
-
-    // download for the customer
-    const blob = new Blob([signedPdfBytes as unknown as BlobPart], { type: 'application/pdf' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'signed.pdf';
-    a.click();
   };
 
   const getFieldStyle = (field: ISignatureTemplate['fields'][0]): CSSProperties => {
@@ -181,7 +162,7 @@ function SignPage () {
             ))}
           </Document>
 
-          {numPages > 0 && endorsement.signature_template.fields.map((field) => (
+          {numPages > 0 && visibleFields.map((field) => (
             <div key={field.fieldName} style={getFieldStyle(field)}>
               {signatures[field.fieldName] ? (
                 // signed — show the signature image
@@ -232,7 +213,7 @@ function SignPage () {
             <div className='fields_panel'>
               <p className='fields_panel_title'>Signature fields</p>
               <div className='fields_list'>
-                {endorsement.signature_template.fields.map((field, index) => (
+                {visibleFields.map((field, index) => (
                   <div
                     key={field.fieldName}
                     className={`fields_list_item ${activeField === field.fieldName ? 'fields_list_item--active' : ''}`}
@@ -252,7 +233,7 @@ function SignPage () {
             {activeField && (
               <div className='signature_canvas_container'>
                 <p className='signature_label'>
-                  Signing: <strong>{endorsement.signature_template.fields.find(f => f.fieldName === activeField)?.label || activeField}</strong>
+                  Signing: <strong>{visibleFields.find(f => f.fieldName === activeField)?.label || activeField}</strong>
                 </p>
                 <SignatureCanvas
                   ref={sigRef}

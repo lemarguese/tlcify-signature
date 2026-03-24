@@ -21,19 +21,23 @@ import { useSearchParams } from "react-router-dom";
 
 function AssignPage () {
   const { endorsementId } = useParams();
+
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
 
+  const [signatureRoles, setSignatureRoles] = useState<string[]>([]);
+
   const [endorsement, setEndorsement] = useState<IEndorsement>({
-    _id: endorsementId ?? '',
-    customer: {} as ICustomer,
-    signature_template: {} as ISignatureTemplate,
-    type: '',
-    url: '',
-    status: 'signature',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  })
+      _id: endorsementId ?? '',
+      customer: {} as ICustomer,
+      signature_template: {} as ISignatureTemplate,
+      type: '',
+      url: '',
+      status: 'signature',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+  );
 
   const fetchEndorsementById = async () => {
     const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/endorsements/${endorsementId}/locations?token=${token}`, {
@@ -62,6 +66,7 @@ function AssignPage () {
   const handleCreateField = () => {
     setSignatureDataUrls(prev => [...prev, `field_${prev.length}`]);
     setSigPositions(prev => [...prev, { x: 0, y: 0 }]);
+    setSignatureRoles(prev => [...prev, '']);
   };
 
   const handleSubmitGenerate = async () => {
@@ -93,7 +98,10 @@ function AssignPage () {
         fieldName: `signature_${index}`,
         page: pageIndex,
         x: Math.round((sigPos.x + 350) * scaleX),
-        y: Math.round(pdfHeight - ((yWithinPage + 77) * scaleY)),
+        label: signatureRoles[index],
+        role: signatureRoles[index].toLowerCase(),
+        // 20 is the header of the signature field
+        y: Math.round(pdfHeight - ((yWithinPage + 77) * scaleY)) - 20,
         width: Math.round(200 * scaleX),
         height: Math.round(77 * scaleY),
       };
@@ -172,16 +180,35 @@ function AssignPage () {
                 Create a field and drag it to the exact position where the customer should sign.
               </p>
 
-              {signatureDataUrls.length > 0 && (
-                <div className='fields_list'>
-                  {signatureDataUrls.map((_, index) => (
-                    <div key={index} className='fields_list_item'>
-                      <span className='fields_list_badge'>{index + 1}</span>
-                      Signature field {index + 1}
-                    </div>
-                  ))}
+              {signatureDataUrls.map((_, index) => (
+                <div className='fields_list_item'>
+                  <div className='field_item_top'>
+                    <span className='fields_list_badge'>{index + 1}</span>
+                    <span className='field_item_label'>Signature field {index + 1}</span>
+                  </div>
+                  <div className='role_selector'>
+                    {['Insured', 'Driver', 'Other'].map(role => (
+                      <button
+                        key={role}
+                        className={`role_btn ${
+                          signatureRoles[index] === role
+                            ? `role_btn--active ${role.toLowerCase()}`
+                            : ''
+                        }`}
+                        onClick={() =>
+                          setSignatureRoles(prev => {
+                            const updated = [...prev];
+                            updated[index] = prev[index] === role ? '' : role;
+                            return updated;
+                          })
+                        }
+                      >
+                        {role}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              )}
+              ))}
 
               <button onClick={handleCreateField} className='btn_create'>
                 <span>+</span> Create a field

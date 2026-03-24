@@ -8,6 +8,7 @@ export interface ISignatureTemplate {
 export interface ISignatureTemplateField {
   fieldName: string;
   label: string;
+  role: 'insured' | 'driver' | 'other'
   page: string;
   x: number;
   y: number;
