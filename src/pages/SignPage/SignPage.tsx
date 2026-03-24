@@ -34,6 +34,7 @@ function SignPage () {
       type: '',
       fields: []
     } as ISignatureTemplate,
+    meta: {},
     type: '',
     url: '',
     status: 'signature',
