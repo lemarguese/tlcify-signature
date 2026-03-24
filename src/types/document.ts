@@ -22,7 +22,8 @@ export interface IEndorsement {
   signature_template: ISignatureTemplate;
   type: string;
   url: string;
-  status: 'signature' | 'pending' | 'approved' | 'rejected';
+  status: 'signature' | 'processing' | 'pending' | 'approved' | 'rejected';
+  meta: any;
   createdAt: Date;
   updatedAt: Date;
 }

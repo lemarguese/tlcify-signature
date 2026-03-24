@@ -33,6 +33,7 @@ function AssignPage () {
       signature_template: {} as ISignatureTemplate,
       type: '',
       url: '',
+      meta: {},
       status: 'signature',
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -114,6 +115,15 @@ function AssignPage () {
       },
       credentials: "include",
       body: JSON.stringify({ fields, endorsementId })
+    });
+
+    await fetch(`${import.meta.env.VITE_BACKEND_URL}/email/invite-signature`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json', 'X-Tenant-ID': import.meta.env.VITE_MAIN_TENANT,
+      },
+      credentials: "include",
+      body: JSON.stringify(endorsement)
     });
 
     alert('Fields saved!');
