@@ -17,9 +17,12 @@ import Footer from "../../layout/Footer/Footer.tsx";
 import Header from "../../layout/Header/Header.tsx";
 import { useParams } from "react-router";
 import type { ICustomer, IEndorsement, ISignatureTemplate } from "../../types/document.ts";
+import { useSearchParams } from "react-router-dom";
 
 function AssignPage () {
   const { endorsementId } = useParams();
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get('token');
 
   const [endorsement, setEndorsement] = useState<IEndorsement>({
     _id: endorsementId ?? '',
@@ -33,12 +36,11 @@ function AssignPage () {
   })
 
   const fetchEndorsementById = async () => {
-    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/endorsements/${endorsementId}/locations`, {
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/endorsements/${endorsementId}/locations?token=${token}`, {
       method: 'GET',
       headers: {
-        'X-Tenant-ID': import.meta.env.VITE_MAIN_TENANT,
-      },
-      credentials: 'include'
+        'X-Tenant-ID': import.meta.env.VITE_MAIN_TENANT
+      }
     });
 
     const data = await response.json();

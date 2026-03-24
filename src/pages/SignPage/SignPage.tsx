@@ -37,7 +37,7 @@ function SignPage () {
   })
 
   const fetchEndorsementById = async () => {
-    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/endorsements/${endorsementId}/signature?token=${token}`, {
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/endorsements/${endorsementId}/locations?token=${token}`, {
       method: 'GET',
       headers: {
         'X-Tenant-ID': import.meta.env.VITE_MAIN_TENANT
