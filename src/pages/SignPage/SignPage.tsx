@@ -28,7 +28,9 @@ function SignPage () {
   const [endorsement, setEndorsement] = useState<IEndorsement>({
     _id: endorsementId ?? '',
     customer: {} as ICustomer,
-    signature_template: {} as ISignatureTemplate,
+    signature_template: {
+      fields: []
+    } as ISignatureTemplate,
     type: '',
     url: '',
     status: 'signature',
