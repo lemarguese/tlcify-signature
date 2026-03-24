@@ -29,6 +29,9 @@ function SignPage () {
     _id: endorsementId ?? '',
     customer: {} as ICustomer,
     signature_template: {
+      _id: '',
+      insurance: '',
+      type: '',
       fields: []
     } as ISignatureTemplate,
     type: '',
