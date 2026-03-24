@@ -108,7 +108,7 @@ function AssignPage () {
       };
     });
 
-    await fetch(`${import.meta.env.VITE_BACKEND_URL}/signature/${endorsement.signature_template._id}`, {
+    const signatureTemplateResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/signature/${endorsement.signature_template._id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json', 'X-Tenant-ID': import.meta.env.VITE_MAIN_TENANT,
@@ -117,13 +117,20 @@ function AssignPage () {
       body: JSON.stringify({ fields, endorsementId })
     });
 
+    const signatureData = await signatureTemplateResponse.json();
+
+    console.log(signatureData)
+
     await fetch(`${import.meta.env.VITE_BACKEND_URL}/email/invite-signature`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json', 'X-Tenant-ID': import.meta.env.VITE_MAIN_TENANT,
       },
       credentials: "include",
-      body: JSON.stringify(endorsement)
+      body: JSON.stringify({
+        ...endorsement,
+        signature_template: signatureData
+      })
     });
 
     alert('Fields saved!');
