@@ -113,7 +113,7 @@ function AssignPage () {
         'Content-Type': 'application/json', 'X-Tenant-ID': import.meta.env.VITE_MAIN_TENANT,
       },
       credentials: "include",
-      body: JSON.stringify({ fields })
+      body: JSON.stringify({ fields, endorsementId })
     });
 
     alert('Fields saved!');
