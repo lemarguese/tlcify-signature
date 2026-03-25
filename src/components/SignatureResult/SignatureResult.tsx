@@ -106,7 +106,7 @@ function SignatureResult ({ status, endorsement, error, onRetry, onBack }: Signa
                   )}
                 </div>
 
-                <button onClick={onBack} className='btn btn--primary'>Back to endorsements</button>
+                {/*<button onClick={onBack} className='btn btn--primary'>Back to endorsements</button>*/}
               </>
             )}
 
@@ -114,7 +114,7 @@ function SignatureResult ({ status, endorsement, error, onRetry, onBack }: Signa
               <>
                 {error && <div className='error_box'>{error}</div>}
                 <button onClick={onRetry} className='btn btn--danger'>Try again</button>
-                <button onClick={onBack} className='btn btn--secondary'>Back to endorsements</button>
+                {/*<button onClick={onBack} className='btn btn--secondary'>Back to endorsements</button>*/}
               </>
             )}
 

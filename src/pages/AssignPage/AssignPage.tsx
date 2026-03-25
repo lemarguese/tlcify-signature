@@ -252,7 +252,7 @@ function AssignPage () {
       </div>,
       loading: <SignatureResult status='loading' endorsement={endorsement}/>,
       success: <SignatureResult status='success' endorsement={endorsement}/>,
-      error: <SignatureResult status='error' endorsement={endorsement}/>
+      error: <SignatureResult status='error' endorsement={endorsement} onRetry={() => setStatus('idle')}/>
     }
 
     return options[status];
