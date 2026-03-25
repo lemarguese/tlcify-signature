@@ -1,7 +1,7 @@
 import './SignPage.scss';
 
 import { Document, Page, pdfjs } from 'react-pdf';
-import { RefObject, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from 'react'
 import SignatureCanvas from 'react-signature-canvas';
 

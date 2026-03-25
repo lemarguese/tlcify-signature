@@ -2,14 +2,14 @@ import './SignatureResult.scss';
 import type { IEndorsement } from '../../types/document.ts';
 
 interface SignatureResultProps {
-  status: 'loading' | 'success' | 'error' | 'pending';
+  status: 'loading' | 'success' | 'error';
   endorsement: IEndorsement;
   error?: string;
   onRetry?: () => void;
   onBack?: () => void;
 }
 
-function SignatureResult ({ status, endorsement, error, onRetry, onBack }: SignatureResultProps) {
+function SignatureResult ({ status, endorsement, error, onRetry }: SignatureResultProps) {
   const insuredFields = endorsement.signature_template.fields.filter(f => f.role === 'insured');
   const driverFields = endorsement.signature_template.fields.filter(f => f.role === 'driver');
 
