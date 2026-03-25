@@ -26,7 +26,7 @@ function SignPage () {
   const token = searchParams.get('token');
   const signatureType = searchParams.get('signatureType');
 
-  const [status, setStatus] = useState<'idle' | 'success' | 'loading' | 'error'>('success');
+  const [status, setStatus] = useState<'idle' | 'success' | 'loading' | 'error'>('idle');
 
   const [endorsement, setEndorsement] = useState<IEndorsement>({
     _id: endorsementId ?? '',
