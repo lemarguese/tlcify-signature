@@ -16,13 +16,24 @@ export interface ISignatureTemplateField {
   height: number;
 }
 
+export interface ISignature {
+  fieldName: string;
+  role: string;
+  imageUrl: string;
+  signedAt: Date;
+  signedIp?: string;
+  signedUserAgent?: string;
+}
+
 export interface IEndorsement {
   _id: string;
   customer: ICustomer;
   signature_template: ISignatureTemplate;
   type: string;
   url: string;
+  feeAmount: number;
   status: 'signature' | 'processing' | 'pending' | 'approved' | 'rejected';
+  signatures: ISignature[];
   meta: any;
   createdAt: Date;
   updatedAt: Date;
@@ -34,4 +45,5 @@ export interface ICustomer {
   lastName: string | null,
   corporationName: string | null,
   phoneNumber: string,
+  email: string;
 }

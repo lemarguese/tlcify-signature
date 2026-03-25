@@ -18,6 +18,7 @@ import Header from "../../layout/Header/Header.tsx";
 import { useParams } from "react-router";
 import type { ICustomer, IEndorsement, ISignatureTemplate } from "../../types/document.ts";
 import { useSearchParams } from "react-router-dom";
+import SignatureResult from "../../components/SignatureResult/SignatureResult.tsx";
 
 function AssignPage () {
   const { endorsementId } = useParams();
@@ -27,12 +28,16 @@ function AssignPage () {
 
   const [signatureRoles, setSignatureRoles] = useState<string[]>([]);
 
+  const [status, setStatus] = useState<'idle' | 'success' | 'loading' | 'error'>('idle');
+
   const [endorsement, setEndorsement] = useState<IEndorsement>({
       _id: endorsementId ?? '',
       customer: {} as ICustomer,
       signature_template: {} as ISignatureTemplate,
       type: '',
       url: '',
+      signatures: [],
+      feeAmount: 0,
       meta: {},
       status: 'signature',
       createdAt: new Date(),
@@ -71,6 +76,7 @@ function AssignPage () {
   };
 
   const handleSubmitGenerate = async () => {
+    setStatus('loading');
     const containerHeight = containerRef.current?.offsetHeight ?? 1;
     const containerWidth = containerRef.current?.offsetWidth ?? 1;
     const pageHeight = containerHeight / numPages;
@@ -108,38 +114,38 @@ function AssignPage () {
       };
     });
 
-    const signatureTemplateResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/signature/${endorsement.signature_template._id}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json', 'X-Tenant-ID': import.meta.env.VITE_MAIN_TENANT,
-      },
-      credentials: "include",
-      body: JSON.stringify({ fields, endorsementId })
-    });
+    try {
+      const signatureTemplateResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/signature/${endorsement.signature_template._id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json', 'X-Tenant-ID': import.meta.env.VITE_MAIN_TENANT,
+        },
+        credentials: "include",
+        body: JSON.stringify({ fields, endorsementId })
+      });
 
-    const signatureData = await signatureTemplateResponse.json();
+      const signatureData = await signatureTemplateResponse.json();
 
-    console.log(signatureData)
-
-    await fetch(`${import.meta.env.VITE_BACKEND_URL}/email/invite-signature`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json', 'X-Tenant-ID': import.meta.env.VITE_MAIN_TENANT,
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        ...endorsement,
-        signature_template: signatureData
-      })
-    });
-
-    alert('Fields saved!');
+      await fetch(`${import.meta.env.VITE_BACKEND_URL}/email/invite-signature`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json', 'X-Tenant-ID': import.meta.env.VITE_MAIN_TENANT,
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          ...endorsement,
+          signature_template: signatureData
+        })
+      });
+      setStatus('success');
+    } catch (e) {
+      setStatus('error');
+    }
   };
 
-  return (
-    <div className='container'>
-      <Header/>
-      <div className='main'>
+  const body = (() => {
+    const options = {
+      idle: <div className='main'>
         <div className='document_container' ref={containerRef}>
           <Document
             className='document'
@@ -243,7 +249,19 @@ function AssignPage () {
             </button>
           </div>
         </div>
-      </div>
+      </div>,
+      loading: <SignatureResult status='loading' endorsement={endorsement}/>,
+      success: <SignatureResult status='success' endorsement={endorsement}/>,
+      error: <SignatureResult status='error' endorsement={endorsement}/>
+    }
+
+    return options[status];
+  })();
+
+  return (
+    <div className='container'>
+      <Header/>
+      {body}
       <Footer/>
     </div>
   )

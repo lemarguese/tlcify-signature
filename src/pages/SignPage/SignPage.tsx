@@ -1,7 +1,7 @@
 import './SignPage.scss';
 
 import { Document, Page, pdfjs } from 'react-pdf';
-import { useEffect, useMemo, useRef, useState } from "react";
+import { RefObject, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from 'react'
 import SignatureCanvas from 'react-signature-canvas';
 
@@ -12,11 +12,12 @@ pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
-import Header from "../../layout/Header/Header.tsx";
-import Footer from "../../layout/Footer/Footer.tsx";
 import { useParams } from "react-router";
 import type { ISignatureTemplate, ICustomer, IEndorsement } from "../../types/document.ts";
 import { useSearchParams } from 'react-router-dom';
+import SignatureResult from "../../components/SignatureResult/SignatureResult.tsx";
+import Header from "../../layout/Header/Header.tsx";
+import Footer from "../../layout/Footer/Footer.tsx";
 
 function SignPage () {
   const { endorsementId } = useParams();
@@ -24,6 +25,8 @@ function SignPage () {
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
   const signatureType = searchParams.get('signatureType');
+
+  const [status, setStatus] = useState<'idle' | 'success' | 'loading' | 'error'>('success');
 
   const [endorsement, setEndorsement] = useState<IEndorsement>({
     _id: endorsementId ?? '',
@@ -34,6 +37,8 @@ function SignPage () {
       type: '',
       fields: []
     } as ISignatureTemplate,
+    feeAmount: 0,
+    signatures: [],
     meta: {},
     type: '',
     url: '',
@@ -97,6 +102,7 @@ function SignPage () {
   const allFieldsSigned = visibleFields.length > 0 && visibleFields.every(f => signatures[f.fieldName]);
 
   const handleSubmitGenerate = async () => {
+    setStatus('loading');
     const formData = new FormData();
 
     for (const field of visibleFields) {
@@ -109,13 +115,18 @@ function SignPage () {
       formData.append('roles', field.role ?? '');
     }
 
-    await fetch(`${import.meta.env.VITE_BACKEND_URL}/endorsements/${endorsementId}/sign?token=${token}`, {
-      method: 'PATCH',
-      headers: {
-        'X-Tenant-ID': import.meta.env.VITE_MAIN_TENANT,
-      },
-      body: formData,
-    });
+    try {
+      await fetch(`${import.meta.env.VITE_BACKEND_URL}/endorsements/${endorsementId}/sign?token=${token}`, {
+        method: 'PATCH',
+        headers: {
+          'X-Tenant-ID': import.meta.env.VITE_MAIN_TENANT,
+        },
+        body: formData,
+      });
+      setStatus('success');
+    } catch (e) {
+      setStatus('error')
+    }
   };
 
   const getFieldStyle = (field: ISignatureTemplate['fields'][0]): CSSProperties => {
@@ -147,10 +158,9 @@ function SignPage () {
     };
   };
 
-  return (
-    <div className='container'>
-      <Header/>
-      <div className='main'>
+  const body = (() => {
+    const options = {
+      idle: <div className='main'>
         <div className='document_container' ref={containerRef}>
           <Document
             className='document'
@@ -263,7 +273,19 @@ function SignPage () {
             </button>
           </div>
         </div>
-      </div>
+      </div>,
+      loading: <SignatureResult status='loading' endorsement={endorsement}/>,
+      success: <SignatureResult status='success' endorsement={endorsement}/>,
+      error: <SignatureResult status='error' endorsement={endorsement}/>
+    }
+
+    return options[status];
+  })();
+
+  return (
+    <div className='container'>
+      <Header/>
+      {body}
       <Footer/>
     </div>
   );
