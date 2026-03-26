@@ -126,6 +126,11 @@ function AssignPage () {
 
       const signatureData = await signatureTemplateResponse.json();
 
+      setEndorsement({
+        ...endorsement,
+        signature_template: signatureData
+      });
+
       await fetch(`${import.meta.env.VITE_BACKEND_URL}/email/invite-signature`, {
         method: 'POST',
         headers: {
