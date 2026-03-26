@@ -1,5 +1,6 @@
 import './SignatureResult.scss';
 import type { IEndorsement } from '../../types/document.ts';
+import { endorsementTypeOptions } from "../../utils/main.ts";
 
 interface SignatureResultProps {
   status: 'loading' | 'success' | 'error';
@@ -78,7 +79,7 @@ function SignatureResult ({ status, endorsement, error, onRetry }: SignatureResu
                   <div className='detail_row'>
                     <span className='detail_label'>Endorsement</span>
                     <span className='detail_value'>
-                      {endorsement.type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                      {endorsementTypeOptions[endorsement.type]}
                     </span>
                   </div>
                   <div className='detail_row'>
