@@ -1,20 +1,16 @@
 .header {
   background-color: #002450;
-
   padding: 16px 40px;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-
   border-bottom: 1px solid #000;
+  position: relative;
 
   &_label {
     font-size: 32px;
-
     font-weight: 600;
-
     font-family: Montserrat, sans-serif;
     color: #fff;
   }
@@ -26,11 +22,69 @@
 
     &_item {
       font-size: 16px;
-
       font-weight: 400;
       font-family: Poppins, sans-serif;
-
       color: #fff;
+      cursor: pointer;
     }
+  }
+
+  &_burger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+
+    &_line {
+      display: block;
+      width: 24px;
+      height: 2px;
+      background: #fff;
+      border-radius: 2px;
+      transition: transform 0.2s, opacity 0.2s;
+
+      &--open {
+        &:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+        &:nth-child(2) { opacity: 0; }
+        &:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+      }
+    }
+  }
+
+  &_menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #002450;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid #000;
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+
+    &_item {
+      font-size: 15px;
+      font-weight: 400;
+      font-family: Poppins, sans-serif;
+      color: #fff;
+      padding: 14px 40px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      cursor: pointer;
+
+      &:last-child { border-bottom: none; }
+      &:hover { background: rgba(255,255,255,0.05); }
+    }
+  }
+
+  @media (max-width: 576px) {
+    padding: 14px 20px;
+
+    &_label { font-size: 22px; }
+    &_right { display: none; }
+    &_burger { display: flex; }
   }
 }
