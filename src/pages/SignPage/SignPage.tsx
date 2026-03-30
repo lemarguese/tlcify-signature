@@ -13,11 +13,12 @@ import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
 import { useParams } from "react-router";
-import type { ISignatureTemplate, IEndorsement } from "../../types/document.ts";
+import type { ISignatureTemplate, IEndorsement, ICustomer } from "../../types/document.ts";
 import { useSearchParams } from 'react-router-dom';
 import SignatureResult from "../../components/SignatureResult/SignatureResult.tsx";
 import Header from "../../layout/Header/Header.tsx";
 import Footer from "../../layout/Footer/Footer.tsx";
+import { endorsementTypeOptions } from "../../utils/main.ts";
 
 function SignPage () {
   const { endorsementId } = useParams();
@@ -36,91 +37,35 @@ function SignPage () {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const endorsement: IEndorsement = {
-    _id: '69c1cb2bec4d506b051bb090',
-    customer: {
-      _id: '69aaef04173440e6fc001442',
-      name: 'Margellan',
-      lastName: 'Amangeldin',
-      email: 'margellan@email.com',
-      phone: '347-266-9111',
-      address: {
-        streetAddress: '159 Bay 47th St',
-        city: 'Brooklyn',
-        state: 'NY',
-        postalCode: '11214',
-      }
-    } as any,
+  const [endorsement, setEndorsement] = useState<IEndorsement>({
+    _id: endorsementId ?? '',
+    customer: {} as ICustomer,
     signature_template: {
-      _id: '69bc2d3628a8a1e75b0a8092',
-      insurance: '68d74342dc6800ec75e56f07',
-      type: 'driver_endorsement',
-      fields: [
-        {
-          fieldName: 'signature_0',
-          label: 'Driver Signature',
-          role: 'Driver',
-          page: 0,
-          x: 142,
-          y: 120,
-          width: 180,
-          height: 55,
-        },
-        {
-          fieldName: 'signature_1',
-          label: 'Driver Initials',
-          role: 'Driver',
-          page: 0,
-          x: 142,
-          y: 200,
-          width: 80,
-          height: 40,
-        },
-      ],
-    },
-    feeAmount: 150,
+      _id: '',
+      insurance: '',
+      type: '',
+      fields: []
+    } as ISignatureTemplate,
+    feeAmount: 0,
     signatures: [],
-    meta: {
-      token: 'mock-token-abc123',
-      driverEmail: 'driver@email.com',
-      driverName: 'John Driver',
-    },
-    type: 'driver_endorsement',
-    url: 'https://pdfobject.com/pdf/sample.pdf',
+    meta: {},
+    type: '',
+    url: '',
     status: 'signature',
-    createdAt: new Date('2026-03-01'),
-    updatedAt: new Date('2026-03-30'),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+
+  const fetchEndorsementById = async () => {
+    const response = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/endorsements/${endorsementId}/locations?token=${token}`,
+      { method: 'GET', headers: { 'X-Tenant-ID': import.meta.env.VITE_MAIN_TENANT } }
+    );
+    const data = await response.json();
+    setEndorsement(data);
   };
 
-  // const [endorsement, setEndorsement] = useState<IEndorsement>({
-  //   _id: endorsementId ?? '',
-  //   customer: {} as ICustomer,
-  //   signature_template: {
-  //     _id: '',
-  //     insurance: '',
-  //     type: '',
-  //     fields: []
-  //   } as ISignatureTemplate,
-  //   feeAmount: 0,
-  //   signatures: [],
-  //   meta: {},
-  //   type: '',
-  //   url: '',
-  //   status: 'signature',
-  //   createdAt: new Date(),
-  //   updatedAt: new Date(),
-  // });
-
-  // const fetchEndorsementById = async () => {
-  //   const response = await fetch(
-  //     `${import.meta.env.VITE_BACKEND_URL}/endorsements/${endorsementId}/locations?token=${token}`,
-  //     { method: 'GET', headers: { 'X-Tenant-ID': import.meta.env.VITE_MAIN_TENANT } }
-  //   );
-  //   const data = await response.json();
-  //   setEndorsement(data);
-  // };
-
-  // useEffect(() => { fetchEndorsementById(); }, []);
+  useEffect(() => { fetchEndorsementById(); }, []);
 
   const visibleFields = useMemo(() => {
     const fields = endorsement.signature_template.fields;
@@ -218,12 +163,12 @@ function SignPage () {
       {/* context card */}
       <div className='mobile_sign_card'>
         <p className='mobile_sign_card_from'>Signature request from</p>
-        <p className='mobile_sign_card_company'>{endorsement.customer?.name ?? 'Samkara Brokerage Inc.'}</p>
+        <p className='mobile_sign_card_company'>Samkara Brokerage Inc.</p>
         <div className='mobile_sign_card_rows'>
           <div className='mobile_sign_card_row'>
             <span className='mobile_sign_card_label'>Type</span>
             <span className='mobile_sign_card_value'>
-              {endorsement.type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+              {endorsementTypeOptions[endorsement.type]}
             </span>
           </div>
           <div className='mobile_sign_card_row'>
@@ -234,7 +179,8 @@ function SignPage () {
           </div>
           <div className='mobile_sign_card_row'>
             <span className='mobile_sign_card_label'>Fields</span>
-            <span className='mobile_sign_card_value'>{visibleFields.length} signature{visibleFields.length > 1 ? 's' : ''} required</span>
+            <span
+              className='mobile_sign_card_value'>{visibleFields.length} signature{visibleFields.length > 1 ? 's' : ''} required</span>
           </div>
         </div>
         <button className='mobile_sign_card_view' onClick={() => setShowDocument(v => !v)}>
@@ -264,7 +210,10 @@ function SignPage () {
         </p>
 
         {allFieldsSigned ? (
-          <div className='mobile_sign_preview' onClick={() => { setSignatures({}); setActiveField(visibleFields[0]?.fieldName); }}>
+          <div className='mobile_sign_preview' onClick={() => {
+            setSignatures({});
+            setActiveField(visibleFields[0]?.fieldName);
+          }}>
             <img src={Object.values(signatures)[0]} alt='signature' className='mobile_sign_preview_img'/>
             <span className='mobile_sign_preview_redo'>Tap to redo</span>
           </div>
@@ -332,7 +281,8 @@ function SignPage () {
                     cursor: 'pointer', display: 'flex',
                     alignItems: 'center', justifyContent: 'center'
                   }}
-                >✕</button>
+                >✕
+                </button>
               </div>
             ) : (
               <button
