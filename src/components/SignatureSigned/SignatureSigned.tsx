@@ -1,7 +1,7 @@
 import './SignatureSigned.scss';
 import type { IEndorsement } from '../../types/document.ts';
 import { endorsementTypeOptions } from "../../utils/main.ts";
-import * as dayjs from 'dayjs';
+import dayjs from 'dayjs';
 
 interface SignatureSignedProps {
   endorsement: IEndorsement;
