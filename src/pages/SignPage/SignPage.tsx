@@ -19,6 +19,7 @@ import SignatureResult from "../../components/SignatureResult/SignatureResult.ts
 import Header from "../../layout/Header/Header.tsx";
 import Footer from "../../layout/Footer/Footer.tsx";
 import { endorsementTypeOptions } from "../../utils/main.ts";
+import SignatureSigned from "../../components/SignatureSigned/SignatureSigned.tsx";
 
 function SignPage () {
   const { endorsementId } = useParams();
@@ -27,7 +28,7 @@ function SignPage () {
   const token = searchParams.get('token');
   const signatureType = searchParams.get('signatureType');
 
-  const [status, setStatus] = useState<'idle' | 'success' | 'loading' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'success' | 'signed' | 'loading' | 'error'>('idle');
   const [showDocument, setShowDocument] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
@@ -78,7 +79,14 @@ function SignPage () {
       position: 0,
       name: visibleFields[0].fieldName
     })
-  }, [visibleFields])
+  }, [visibleFields]);
+
+  useEffect(() => {
+    const signedFieldNames = new Set(endorsement.signatures.map(s => s.fieldName));
+    const allFieldsSigned = visibleFields.every(field => signedFieldNames.has(field.fieldName));
+
+    if (allFieldsSigned) setStatus('signed');
+  }, [endorsement, visibleFields]);
 
   const [numPages, setNumPages] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -423,6 +431,7 @@ function SignPage () {
     const options = {
       idle: isMobile ? mobileSignFlow : desktopSignFlow,
       loading: <SignatureResult status='loading' endorsement={endorsement}/>,
+      signed: <SignatureSigned endorsement={endorsement} signatureType={signatureType}/>,
       success: <SignatureResult status='success' endorsement={endorsement}/>,
       error: <SignatureResult status='error' endorsement={endorsement} onRetry={() => setStatus('idle')}/>
     };

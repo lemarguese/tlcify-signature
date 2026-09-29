@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@vitejs/plugin-react-swc": "^4.3.0",
+    "dayjs": "^1.11.23",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "5.4.296",
     "prop-types": "^15.8.1",
