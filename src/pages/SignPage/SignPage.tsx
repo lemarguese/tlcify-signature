@@ -77,35 +77,54 @@ function SignPage () {
   const containerRef = useRef<HTMLDivElement>(null);
   const sigRef = useRef<SignatureCanvas>(null);
   const [signatures, setSignatures] = useState<Record<string, string>>({});
-  const [activeField, setActiveField] = useState<string | null>(null);
+  const [activeField, setActiveField] = useState<{
+    position: number,
+    name: string
+  } | null>(null);
 
   const handleClear = () => sigRef.current?.clear();
 
-  const handleSignField = (fieldName: string) => {
+  const handleSignField = (field: { position: number, name: string }) => {
     if (visibleFields.length > 1 && Object.keys(signatures).length > 0) {
       setSignatures({});
     }
-    setActiveField(fieldName);
+    setActiveField(field);
   };
 
-  const handleSubmitSignature = () => {
+  const handleSubmitSignature = ({ isForAll }: { isForAll: boolean }) => {
     if (sigRef.current?.isEmpty()) {
       alert('Please provide a signature');
       return;
     }
+
     const dataUrl = sigRef.current!.toDataURL('image/png');
 
-    if (visibleFields.length > 1) {
-      const allSigned = visibleFields.reduce((acc, field) => {
-        acc[field.fieldName] = dataUrl;
-        return acc;
-      }, {} as Record<string, string>);
-      setSignatures(prev => ({ ...prev, ...allSigned }));
+    if (isForAll) {
+      if (visibleFields.length > 1) {
+        const allSigned = visibleFields.reduce((acc, field) => {
+          acc[field.fieldName] = dataUrl;
+          return acc;
+        }, {} as Record<string, string>);
+        setSignatures(prev => ({ ...prev, ...allSigned }));
+      }
     } else {
-      setSignatures(prev => ({ ...prev, [activeField!]: dataUrl }));
+      setSignatures(prev => ({ ...prev, [activeField!.name]: dataUrl }));
     }
 
-    setActiveField(null);
+    setActiveField(prev => {
+      if (prev) {
+        if (visibleFields.length > 1) {
+          if (visibleFields[prev.position + 1]) {
+            return {
+              position: prev.position + 1,
+              name: visibleFields[prev.position + 1].fieldName
+            }
+          }
+        }
+      }
+
+      return null;
+    });
     handleClear();
   };
 
@@ -188,6 +207,26 @@ function SignPage () {
         </button>
       </div>
 
+      <div className='mobile_sign_variants'>
+        <h6 className='mobile_sign_variants_title'>Fields to sign</h6>
+        <div className='mobile_sign_variants_list'>
+          {visibleFields.map((vf, index) => (
+            <button className={`mobile_sign_variants_list_item ${activeField?.name === vf.fieldName ? 'active' : ''}`}
+                    onClick={() => setActiveField({ position: index, name: vf.fieldName })}>
+              <div
+                className={`mobile_sign_variants_list_item_icon ${activeField?.name === vf.fieldName ? 'active' : signatures[vf.fieldName] ? 'done' : 'inactive'}`}></div>
+              <div className='mobile_sign_variants_list_item_content'>
+                <h6 className='mobile_sign_variants_list_item_content_title'>{vf.role} signature</h6>
+                <p
+                  className={`mobile_sign_variants_list_item_content_description ${activeField?.name === vf.fieldName ? 'active' : signatures[vf.fieldName] ? 'done' : 'inactive'}`}>{
+                  activeField?.name === vf.fieldName ? 'Currently drawing' : signatures[vf.fieldName] ? 'Signed — tap to redo' : 'Not signed yet'
+                }</p>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* collapsible PDF */}
       {showDocument && (
         <div className='mobile_document_container' ref={containerRef}>
@@ -212,7 +251,7 @@ function SignPage () {
         {allFieldsSigned ? (
           <div className='mobile_sign_preview' onClick={() => {
             setSignatures({});
-            setActiveField(visibleFields[0]?.fieldName);
+            setActiveField({ position: 0, name: visibleFields[0].fieldName ?? '' });
           }}>
             <img src={Object.values(signatures)[0]} alt='signature' className='mobile_sign_preview_img'/>
             <span className='mobile_sign_preview_redo'>Tap to redo</span>
@@ -225,10 +264,18 @@ function SignPage () {
               canvasProps={{ className: 'mobile_signature_canvas' }}
             />
             <div className='mobile_sign_pad_footer'>
-              <button onClick={handleClear} className='btn_clear'>Clear</button>
-              <button onClick={handleSubmitSignature} className='btn_primary'>
-                {visibleFields.length > 1 ? `Apply to all ${visibleFields.length} fields` : 'Confirm signature'}
+              <button onClick={handleClear} className='mobile_sign_pad_footer btn_clear'>
+                Clear
               </button>
+              <button onClick={() => handleSubmitSignature({ isForAll: false })}
+                      className='mobile_sign_pad_footer btn_primary'>
+                Confirm signature
+              </button>
+              {visibleFields.length > 1 && (activeField ? activeField.position : 0) < visibleFields.length - 1 &&
+                  <button onClick={() => handleSubmitSignature({ isForAll: true })}
+                          className='mobile_sign_pad_footer btn_primary'>
+                    {`Apply to all ${visibleFields.length} fields`}
+                  </button>}
             </div>
           </>
         )}
@@ -262,7 +309,7 @@ function SignPage () {
           ))}
         </Document>
 
-        {numPages > 0 && visibleFields.map((field) => (
+        {numPages > 0 && visibleFields.map((field, index) => (
           <div key={field.fieldName} style={getFieldStyle(field)}>
             {signatures[field.fieldName] ? (
               <div style={{ position: 'relative', width: '100%', height: '100%' }}>
@@ -272,7 +319,7 @@ function SignPage () {
                   alt='signature'
                 />
                 <button
-                  onClick={() => handleSignField(field.fieldName)}
+                  onClick={() => handleSignField({ position: index, name: field.fieldName })}
                   style={{
                     position: 'absolute', top: -8, right: -8,
                     background: '#1a1a1a', color: '#fff',
@@ -286,7 +333,7 @@ function SignPage () {
               </div>
             ) : (
               <button
-                onClick={() => handleSignField(field.fieldName)}
+                onClick={() => handleSignField({ position: index, name: field.fieldName })}
                 style={{
                   width: '100%', height: '100%',
                   border: '1.5px dashed #1a1a1a',
@@ -310,8 +357,8 @@ function SignPage () {
               {visibleFields.map((field, index) => (
                 <div
                   key={field.fieldName}
-                  className={`fields_list_item ${activeField === field.fieldName ? 'fields_list_item--active' : ''}`}
-                  onClick={() => handleSignField(field.fieldName)}
+                  className={`fields_list_item ${(activeField ? activeField.name : '') === field.fieldName ? 'fields_list_item--active' : ''}`}
+                  onClick={() => handleSignField({ position: index, name: field.fieldName })}
                 >
                   <span className={`fields_list_badge ${signatures[field.fieldName] ? 'fields_list_badge--done' : ''}`}>
                     {signatures[field.fieldName] ? '✓' : index + 1}
@@ -325,7 +372,7 @@ function SignPage () {
           {activeField && (
             <div className='signature_canvas_container'>
               <p className='signature_label'>
-                Signing: <strong>{visibleFields.find(f => f.fieldName === activeField)?.label || activeField}</strong>
+                Signing: <strong>{visibleFields.find(f => f.fieldName === activeField.name)?.label || activeField.name}</strong>
               </p>
               <SignatureCanvas
                 ref={sigRef}
@@ -338,9 +385,15 @@ function SignPage () {
               </div>
               <div className='signature_buttons' style={{ marginTop: 12 }}>
                 <button className='btn_cancel' onClick={() => setActiveField(null)}>Cancel</button>
-                <button onClick={handleSubmitSignature} className='btn_primary'>
-                  {visibleFields.length > 1 ? `Apply to all ${visibleFields.length} fields` : 'Confirm signature'}
+                <button onClick={() => handleSubmitSignature({ isForAll: false })}
+                        className='mobile_sign_pad_footer btn_primary'>
+                  Confirm signature
                 </button>
+                {visibleFields.length > 1 && activeField?.position < visibleFields.length - 1 &&
+                    <button onClick={() => handleSubmitSignature({ isForAll: true })}
+                            className='mobile_sign_pad_footer btn_primary'>
+                      {`Apply to all ${visibleFields.length} fields`}
+                    </button>}
               </div>
             </div>
           )}

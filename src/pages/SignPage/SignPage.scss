@@ -47,6 +47,96 @@
     }
   }
 
+  &_variants {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    padding: 12px;
+
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+
+    &_title {
+
+    }
+
+    &_list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+
+      &_item {
+        outline: none;
+
+        padding: 8px;
+
+        //align-items: center;
+        display: flex;
+        gap: 8px;
+
+        background-color: rgba(0, 0, 0, 0.05);
+        border-radius: 8px;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+
+        &_icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+
+          &.inactive {
+            border: 1px dashed rgba(0, 0, 0, 0.1);
+          }
+
+          &.active {
+            background-color: rgba(0, 0, 0, 0.75);
+          }
+
+          &.done {
+            background-color: #2d7a55;
+          }
+        }
+
+        &_content {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 4px;
+
+          &_title {
+            font-size: 12px;
+
+            text-transform: capitalize;
+          }
+
+          &_description {
+            font-size: 10px;
+
+            &.inactive {
+              color: rgba(0, 0, 0, 0.5);
+            }
+
+            &.active {
+              color: rgba(0, 0, 0, 0.75);
+            }
+
+            &.done {
+              color: #2d7a55;
+            }
+          }
+        }
+
+        &.active {
+          border: 1px solid #000;
+        }
+      }
+    }
+  }
+
   &_pad {
     background: #fff;
     border: 1px solid #f0f0f0;
@@ -61,12 +151,43 @@
     }
 
     &_footer {
-      display: flex;
-      gap: 8px;
-      margin-top: 12px;
+      margin-top: 8px;
 
-      .btn_clear { flex: 1; }
-      .btn_primary { flex: 2; }
+      display: flex;
+      gap: 12px;
+
+      .btn_clear {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        padding: 8px;
+        border-radius: 10px;
+        border: 1px solid #E3E1DC;
+
+        background: #FAFAF8;
+        color: #6B6A64;
+        font-size: 12px;
+        font-weight: 500;
+      }
+
+      .btn_primary {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+
+        padding: 8px;
+        border-radius: 10px;
+        border: none;
+
+        background: #1E2A38;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 600;
+      }
     }
   }
 
