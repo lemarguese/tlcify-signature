@@ -68,11 +68,17 @@ function SignPage () {
   const visibleFields = useMemo(() => {
     const fields = endorsement.signature_template.fields;
     if (!signatureType) return fields;
+
     return fields.filter(f => f.role?.toLowerCase() === signatureType.toLowerCase());
   }, [endorsement.signature_template.fields, signatureType]);
 
   useEffect(() => { fetchEndorsementById(); }, []);
-  useEffect(() => { setActiveField({ position: 0, name: visibleFields[0].fieldName }) }, [visibleFields])
+  useEffect(() => {
+    if (visibleFields.length) setActiveField({
+      position: 0,
+      name: visibleFields[0].fieldName
+    })
+  }, [visibleFields])
 
   const [numPages, setNumPages] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
