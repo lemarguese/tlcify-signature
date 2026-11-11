@@ -1,5 +1,6 @@
 :root {
     background-color: white;
+    font-family: 'Bulletin Typewriter', sans-serif;
 }
 
 * {
@@ -11,4 +12,12 @@
 
 footer {
     margin-top: auto;
+}
+
+@font-face {
+    font-family: 'Bulletin Typewriter';
+    src: url('./assets/font/Bulletin.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
 }
