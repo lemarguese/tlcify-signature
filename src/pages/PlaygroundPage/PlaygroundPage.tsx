@@ -483,7 +483,7 @@ function PlaygroundPage () {
         throw new Error('signatureTemplateId is missing — cannot PATCH');
       }
 
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/signature/${endorsement.signature_template._id}`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/signature/${endorsement.signature_template._id}?token=${endorsementToken}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
