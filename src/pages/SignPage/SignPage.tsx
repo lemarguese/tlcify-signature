@@ -82,6 +82,8 @@ function SignPage () {
   }, [visibleFields]);
 
   useEffect(() => {
+    if (visibleFields.length === 0) return; // nothing to sign here, so not "signed"
+
     const signedFieldNames = new Set(endorsement.signatures.map(s => s.fieldName));
     const allFieldsSigned = visibleFields.every(field => signedFieldNames.has(field.fieldName));
 
