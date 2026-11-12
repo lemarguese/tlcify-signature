@@ -70,7 +70,7 @@ function SignPage () {
     const fields = endorsement.signature_template.fields;
     if (!signatureType) return fields;
 
-    return fields.filter(f => f.role?.toLowerCase() === signatureType.toLowerCase());
+    return fields.filter(f => f.role?.toLowerCase() === signatureType.toLowerCase() && !f.readonly);
   }, [endorsement.signature_template.fields, signatureType]);
 
   useEffect(() => { fetchEndorsementById(); }, []);
