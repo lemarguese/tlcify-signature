@@ -490,7 +490,10 @@ function PlaygroundPage () {
           'X-Tenant-ID': import.meta.env.VITE_MAIN_TENANT,
         },
         credentials: 'include',
-        body: JSON.stringify({ fields: payload, endorsementId, zoom }),
+        body: JSON.stringify({
+          fields: payload,
+          endorsementId,
+        }),
       });
 
       if (!response.ok) {
